@@ -1,3 +1,5 @@
+from collections import deque
+
 class MiniGit:
     __slots__ = (
         "__pais",
@@ -109,3 +111,53 @@ class MiniGit:
     @property
     def branch_atual(self):
         return self.__branch_atual
+
+    def log(self):
+        commit_atual = self.__branches[self.__branch_atual]
+
+        if commit_atual is None:
+            self.__passos = 0
+            return ()
+
+        fila = deque([commit_atual])
+        visitados = set()
+        resultado = []
+
+        while fila:
+            identificador = fila.popleft()
+
+            if identificador in visitados:
+                continue
+
+            visitados.add(identificador)
+            resultado.append(identificador)
+
+            for pai in self.__pais[identificador]:
+                fila.append(pai)
+
+        self.__passos = len(resultado)
+
+        return tuple(resultado)
+
+    def buscar(self, texto):
+        self.__passos = 0
+
+        for identificador in self.__mensagens:
+            self.__passos += 1
+
+            if texto in self.__mensagens[identificador]:
+                return identificador
+
+        return None
+
+    def merges(self):
+        self.__passos = 0
+        resultado = []
+
+        for identificador in self.__pais:
+            self.__passos += 1
+
+            if len(self.__pais[identificador]) > 1:
+                resultado.append(identificador)
+
+        return tuple(resultado)
